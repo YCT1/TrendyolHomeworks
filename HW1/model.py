@@ -14,8 +14,8 @@ class ModelBase():
         """
         This function calculates grad vector and return it
         """
-        g_b0 = -2 * (y - y_pred).sum()
-        g_b1 = -2 * (x * (y - y_pred)).sum()
+        g_b0 = -2 * (y - y_pred).mean()
+        g_b1 = -2 * (x * (y - y_pred)).mean()
         return g_b0, g_b1
     
     def fit(self, x, y,alpha=0.001):
