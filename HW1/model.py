@@ -63,7 +63,7 @@ class ModelRegulizedL2(ModelBase):
         return g_b0, g_b1
 
 
-class ModelRegulizedL2(ModelBase):
+class ModelRegulizedL1(ModelBase):
     def grad(self, y: np.array, y_pred: np.array, x: np.array, lam=10**-1):
         if self.beta[0] >= 0:
             g_b0 = -2 * (y - y_pred).mean() + lam
@@ -75,4 +75,17 @@ class ModelRegulizedL2(ModelBase):
         else:
             g_b1 = -2 * (x * (y - y_pred)).mean() - lam
         
+        return g_b0, g_b1
+
+
+
+class ThresholdBasedModel(ModelBase):
+    def __init__(self, threshold, lam) -> None:
+        super().__init__()
+        self.lam = lam
+        self.threshold = threshold
+    
+    def grad(self, y: np.array, y_pred: np.array, x: np.array):
+        g_b0 = -2 * (y - y_pred).mean() + 2 * self.lam * self.beta[0]
+        g_b1 = -2 * (x * (y - y_pred)).mean() + 2 * self.lam * self.beta[1]
         return g_b0, g_b1
