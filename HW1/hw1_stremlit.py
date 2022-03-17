@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import pandas as pd
 from sklearn.datasets import fetch_california_housing
 
-from model import ModelBase, ModelRegulizedL2, ModelRegulizedL1
+from model import ModelBase, ModelRegulizedL2, ModelRegulizedL1, ThresholdBasedModel
 
 
 
@@ -25,26 +25,34 @@ def main():
 
     myModel = ModelBase()
     myModel2 = ModelRegulizedL2()
+
+    threshold = st.slider("Threshold",0.001,1.,0.5)
+    myModel3 = ThresholdBasedModel(threshold=threshold, lam=10**-1)
     myModel.fit(X,y)
     myModel2.fit(X,y)
+    myModel3.fit(X,y)
 
     y_pred = myModel.pred(X)
     y_pred2 = myModel2.pred(X)
+    y_pred3 = myModel3.pred(X)
 
     error = np.mean((y_pred-y)**2)
     error2 = np.mean((y_pred2-y)**2)
+    error3 = np.mean((y_pred3-y)**2)
 
-    st.write(f"(MAE) Base Model Error: {error} \n(MAE) L2 Model Error: {error2}")
+    st.write(f"(MAE) Base Model Error:{error}")
+    st.write(f"(MAE) L2 Model Error: {error2}")
+    st.write(f"(MAE) New Model Error: {error3}")
 
     results = pd.DataFrame()
     results["X"]  = X 
     results["Base"] = y
     results["Model 1"] = y_pred
     results["Model 2"] = y_pred2
+    results["Model 3"] = y_pred3
 
-    st.dataframe(results)
-    
-    fig = px.scatter(results, x="X", y=["Base","Model 1","Model 2"])
+   
+    fig = px.scatter(results, x="X", y=["Base","Model 1","Model 2","Model 3"])
 
     st.plotly_chart(fig, use_container_width=True)
     pass
