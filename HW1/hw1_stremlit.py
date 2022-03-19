@@ -28,31 +28,41 @@ def main():
 
     threshold = st.slider("Threshold",5.,25.,7.99)
     myModel3 = TorchBasedModel(threshold)
-    myModel.fit(X,y)
-    myModel2.fit(X,y)
-    myModel3.fit(X,y)
+    
+    myModel4 = ThresholdBasedModel(threshold)
+
+    epoch = st.slider("Epoch",10,1000,100)
+    
+    myModel.fit(X,y,epoch=epoch)
+    myModel2.fit(X,y,epoch=epoch)
+    myModel3.fit(X,y,epoch=epoch)
+    myModel4.fit(X,y,epoch=epoch)
 
     y_pred = myModel.pred(X)
     y_pred2 = myModel2.pred(X)
     y_pred3 = myModel3.pred(X)
+    y_pred4 = myModel4.pred(X)
 
     error = np.mean((y_pred-y)**2)
     error2 = np.mean((y_pred2-y)**2)
     error3 = np.mean((y_pred3-y)**2)
+    error4 = np.mean((y_pred4-y)**2)
 
     st.write(f"(MAE) Base Model Error:{error}")
     st.write(f"(MAE) L2 Model Error: {error2}")
-    st.write(f"(MAE) New Model Error: {error3}")
+    st.write(f"(MAE) Torch Based New Loss: {error3}")
+    st.write(f"(MAE) Custom Based New Loss: {error4}")
 
     results = pd.DataFrame()
     results["X"]  = X 
-    results["Base"] = y
-    results["Model 1"] = y_pred
-    results["Model 2"] = y_pred2
-    results["Model 3"] = y_pred3
+    results["Data"] = y
+    results["Base Model"] = y_pred
+    results["Regulized Base Model"] = y_pred2
+    results["Torch Based Model"] = y_pred3
+    results["Custom Based Model"] = y_pred4
 
    
-    fig = px.scatter(results, x="X", y=["Base","Model 1","Model 2","Model 3"])
+    fig = px.scatter(results, x="X", y=["Data","Base Model","Regulized Base Model","Torch Based Model","Custom Based Model"])
 
     st.plotly_chart(fig, use_container_width=True)
     pass
