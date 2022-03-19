@@ -1,3 +1,4 @@
+from distutils.log import error
 from unittest import result
 import numpy as np
 import streamlit as st
@@ -8,6 +9,12 @@ from sklearn.datasets import fetch_california_housing
 
 from model import ModelBase, ModelRegulizedL2, ModelRegulizedL1, ThresholdBasedModel, TorchBasedModel
 
+
+def CalculateError(x, y,threshold, b=0.2):
+    error1 = (x-y)**2
+
+    error2 = threshold * (1/-np.exp(b*error1) + 1)
+    return error1.mean(), error2.mean()
 
 
 
@@ -26,7 +33,7 @@ def main():
     myModel = ModelBase()
     myModel2 = ModelRegulizedL2()
 
-    threshold = st.slider("Threshold",5.,25.,7.99)
+    threshold = st.slider("Threshold",1.,25.,3.5)
     myModel3 = TorchBasedModel(threshold)
     
     myModel4 = ThresholdBasedModel(threshold)
@@ -43,15 +50,15 @@ def main():
     y_pred3 = myModel3.pred(X)
     y_pred4 = myModel4.pred(X)
 
-    error = np.mean((y_pred-y)**2)
-    error2 = np.mean((y_pred2-y)**2)
-    error3 = np.mean((y_pred3-y)**2)
-    error4 = np.mean((y_pred4-y)**2)
+    error = CalculateError(y_pred,y,threshold)
+    error2 = CalculateError(y_pred2,y,threshold)
+    error3 = CalculateError(y_pred3,y,threshold)
+    error4 = CalculateError(y_pred4,y,threshold)
 
-    st.write(f"(MAE) Base Model Error:{error}")
-    st.write(f"(MAE) L2 Model Error: {error2}")
-    st.write(f"(MAE) Torch Based New Loss: {error3}")
-    st.write(f"(MAE) Custom Based New Loss: {error4}")
+    st.write(f"(MAE) Base Model Error (MAE):{error[0]:.3f} ;  (MAE-Capped): {error[1]:.3f}")
+    st.write(f"(MAE) L2 Model Error (MAE): {error2[0]:.3f} ;  (MAE-Capped): {error2[1]:.3f}")
+    st.write(f"(MAE) Torch Based New Loss (MAE): {error3[0]:.3f} ;  (MAE-Capped): {error3[1]:.3f}")
+    st.write(f"(MAE) Custom Based New Loss (MAE): {error4[0]:.3f} ;  (MAE-Capped): {error4[1]:.3f}")
 
     results = pd.DataFrame()
     results["X"]  = X 

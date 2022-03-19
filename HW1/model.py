@@ -3,6 +3,7 @@
 
 from multiprocessing import reduction
 from turtle import shape
+from cv2 import moments
 import numpy as np
 import torch
 
@@ -20,14 +21,13 @@ class ModelBase():
         g_b1 = -2 * (x * (y - y_pred)).mean()
         return g_b0, g_b1
     
-    def fit(self, x: np.array, y: np.array,alpha=0.001,epoch=100):
+    def fit(self, x: np.array, y: np.array,alpha=0.002,epoch=100):
 
         self.beta = np.random.random(2)
         np.random.seed(10)
         print("starting sgd")
         for i in range(epoch):
             y_pred: np.ndarray = self.beta[0] + self.beta[1] * x
-
 
             # Calculate the grad vector
             g_b0,g_b1 = self.grad(y,y_pred,x)
@@ -87,15 +87,11 @@ class ThresholdBasedModel(ModelBase):
         super().__init__()
         self.threshold = threshold
     
-    def grad(self, y: np.array, y_pred: np.array, x: np.array, b=0.05):
-        g_b0 = -2 * (y - y_pred)# dx
-        g_b1 = -2 * (x*(y  - y_pred)) # dy
-        
-        fx = (y_pred-y)**2
-        g_b0 = self.threshold*b*np.exp(b*fx)*g_b0
-        g_b1 = self.threshold*b*np.exp(b*fx)*g_b1
-        return g_b0.mean(), g_b1.mean()
 
+    def grad(self, y: np.array, y_pred: np.array, x: np.array, b=0.2):
+        g_b0 = 2 * b * self.threshold *(y-y_pred) * np.exp(b *(y-y_pred)**2)
+        g_b1 = -2 * b * self.threshold* (y-y_pred) * np.exp(b *(y-y_pred)**2)
+        return g_b0.mean(), g_b1.mean()
 
 
 # Torch based Model
@@ -114,8 +110,9 @@ class Model(torch.nn.Module):
 # Torch Based Model 
 class TorchBasedModel():
     def __init__(self,threshold) -> None:
+        torch.manual_seed(10)
         self.model = Model()
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.01, momentum=0.9)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.02)
         self.threshold = threshold
         pass
     
@@ -131,7 +128,7 @@ class TorchBasedModel():
         return torch.mean(loss)
 
     def fit(self, x: np.array, y: np.array, epoch=100):
-
+        
         # Tranfer from numpy to torch
         x = torch.from_numpy(x)
         y = torch.from_numpy(y)
