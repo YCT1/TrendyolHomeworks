@@ -1,6 +1,7 @@
 # Yekta Can Tursun
 
 
+from multiprocessing import reduction
 from turtle import shape
 import numpy as np
 import torch
@@ -128,20 +129,24 @@ class Model(torch.nn.Module):
         return self.b0 + self.b1 * x
 
 
-class Model2():
+class TorchBasedModel():
     def __init__(self,threshold) -> None:
         self.model = Model()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.01, momentum=0.9)
         self.threshold = threshold
         pass
     
+    def softCap(self, x : np.array, threshold=1,b=0.05):
+        return threshold * (1/-torch.exp(b*x) + 1)
+        
     def loss(self, y, y_pred):
-        loss = ((y_pred-y)**2)
-        loss[loss > self.threshold ] = self.threshold 
+        loss = (y_pred-y)**2
+        loss = self.softCap(loss,threshold=self.threshold)
         return torch.mean(loss)
 
     def fit(self, x, y):
         pass
+        
         x = torch.from_numpy(x)
         y = torch.from_numpy(y)
         self.model.train()

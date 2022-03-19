@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import pandas as pd
 from sklearn.datasets import fetch_california_housing
 
-from model import ModelBase, ModelRegulizedL2, ModelRegulizedL1, ThresholdBasedModel, Model2
+from model import ModelBase, ModelRegulizedL2, ModelRegulizedL1, ThresholdBasedModel, TorchBasedModel
 
 
 
@@ -26,8 +26,8 @@ def main():
     myModel = ModelBase()
     myModel2 = ModelRegulizedL2()
 
-    threshold = st.slider("Threshold",0.5,10.,7.99)
-    myModel3 = Model2(threshold)
+    threshold = st.slider("Threshold",5.,25.,7.99)
+    myModel3 = TorchBasedModel(threshold)
     myModel.fit(X,y)
     myModel2.fit(X,y)
     myModel3.fit(X,y)
