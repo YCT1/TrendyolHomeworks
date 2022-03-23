@@ -1,4 +1,8 @@
-from distutils.log import error
+# General code
+# Run this for streamlit results
+# Yekta Can Tursun
+
+
 from unittest import result
 import numpy as np
 import streamlit as st
@@ -7,7 +11,7 @@ import plotly.graph_objects as go
 import pandas as pd
 from sklearn.datasets import fetch_california_housing
 
-from model import ModelBase, ModelRegulizedL2, ModelRegulizedL1, ThresholdBasedModel, TorchBasedModel
+from model import ModelBase, ModelRegulizedL2, ModelRegulizedL1, ThresholdBasedModel, TorchBasedModel, cappep_loss
 
 
 def CalculateError(x, y,threshold, b=0.2):
@@ -16,12 +20,27 @@ def CalculateError(x, y,threshold, b=0.2):
     error2 = threshold * (1/-np.exp(b*error1) + 1)
     return error1.mean(), error2.mean()
 
+def latexEquationAndPlot(threshold,b):
+    st.latex(r"""Loss(\theta) = \left(\frac{1}{-e^{b\theta} + 1}\right)\cdot a""")
+    st.latex(r"""Where \quad \theta = \frac{1}{n} \sum_{i=1}^{n}\left(Y_{i}-Y_{i}\right)^{2}""")
 
+
+    x, y = np.linspace(-10, 10, 1000), np.linspace(-10, 10, 1000)
+    xv, yv = np.meshgrid(x, y)
+    
+    z_data = cappep_loss(xv,yv,threshold,b)
+    fig = go.Figure(data=[go.Surface(z=z_data)])
+    fig.update_layout(title="Loss Space", autosize=False,
+                  width=500, height=500,
+                  margin=dict(l=65, r=50, b=65, t=90))
+    st.plotly_chart(fig, use_container_width=True)
+    pass
 
 def main():
     st.header("Homework 1")
     st.text("By Yekta Can Tursun")
 
+    
 
     cal_housing = fetch_california_housing() 
     X = pd.DataFrame(cal_housing.data, columns=cal_housing.feature_names) 
@@ -33,10 +52,13 @@ def main():
     myModel = ModelBase()
     myModel2 = ModelRegulizedL2()
 
-    threshold = st.slider("Threshold",1.,25.,3.5)
-    myModel3 = TorchBasedModel(threshold)
+    threshold = st.slider("Threshold (a)",1.,25.,3.5)
+    b = st.slider("b",0.005,0.5,0.2)
+    latexEquationAndPlot(threshold,b)
     
-    myModel4 = ThresholdBasedModel(threshold)
+    myModel3 = TorchBasedModel(threshold,b)
+    
+    myModel4 = ThresholdBasedModel(threshold,b)
 
     epoch = st.slider("Epoch",10,1000,100)
     

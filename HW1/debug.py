@@ -1,3 +1,4 @@
+# This code used for debuging purpose
 import numpy as np
 import pandas as pd
 from sklearn.datasets import fetch_california_housing

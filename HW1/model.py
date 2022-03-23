@@ -1,5 +1,6 @@
 # Yekta Can Tursun
-
+# This code includes and generic 1-D linear regression base class
+# And its different loss function derivations
 
 from multiprocessing import reduction
 from turtle import shape
@@ -83,14 +84,15 @@ class ModelRegulizedL1(ModelBase):
 
 
 class ThresholdBasedModel(ModelBase):
-    def __init__(self, threshold) -> None:
+    def __init__(self, threshold,b) -> None:
         super().__init__()
         self.threshold = threshold
+        self.b = b
     
 
-    def grad(self, y: np.array, y_pred: np.array, x: np.array, b=0.2):
-        g_b0 = 2 * b * self.threshold *(y-y_pred) * np.exp(b *(y-y_pred)**2)
-        g_b1 = -2 * b * self.threshold* (y-y_pred) * np.exp(b *(y-y_pred)**2)
+    def grad(self, y: np.array, y_pred: np.array, x: np.array):
+        g_b0 = 2 * self.b * self.threshold *(y-y_pred) * np.exp(self.b *(y-y_pred)**2)
+        g_b1 = -2 * self.b * self.threshold* (y-y_pred) * np.exp(self.b*(y-y_pred)**2)
         return g_b0.mean(), g_b1.mean()
 
 
@@ -109,18 +111,19 @@ class Model(torch.nn.Module):
 
 # Torch Based Model 
 class TorchBasedModel():
-    def __init__(self,threshold) -> None:
+    def __init__(self,threshold,b) -> None:
         torch.manual_seed(10)
         self.model = Model()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.02)
         self.threshold = threshold
+        self.b = b
         pass
     
-    def softCap(self, x : np.array, threshold=1,b=0.05):
+    def softCap(self, x : np.array, threshold=1):
         """
         Soft capping function
         """
-        return threshold * (1/-torch.exp(b*x) + 1)
+        return threshold * (1/-torch.exp(self.b*x) + 1)
         
     def loss(self, y: np.array, y_pred: np.array):
         loss = (y_pred-y)**2
@@ -155,3 +158,15 @@ class TorchBasedModel():
         self.model.eval()
         y_pred = self.model(y)
         return y_pred.detach().numpy()
+
+def softCap(x : np.array, threshold=1,b=0.05):
+        """
+        Soft capping function
+        """
+        return threshold * (1/-np.exp(b*x) + 1)
+
+def cappep_loss(y: np.array, y_pred: np.array,threshold,b):
+    
+    loss = (y_pred-y)**2
+    loss = softCap(loss,threshold=threshold,b=b)
+    return loss
